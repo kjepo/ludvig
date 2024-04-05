@@ -114,6 +114,7 @@ poly="{$x0} {$y0} {$x1} {$y0} {$x1} {$y1} {$x0} {$y1} {$x0} {$y0}", fill=lightgr
 text="Visit your local camera store in Nässjö", font={$f}, y=50%
 image="../img/sponsorer/hegethorns.png", bbox=(80% 90% 99% 99%), align=bottom
 ```
-!(https://github.com/kjepo/ludvig/blob/main/hegethorns.jpg)
+![Output](https://github.com/kjepo/ludvig/blob/main/hegethorns.jpeg)
+
 
 
