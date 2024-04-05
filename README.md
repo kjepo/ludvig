@@ -23,6 +23,13 @@ the following will be shown in the browser:
 
 As you can see from the sample file above, each line in a ludvig file is a command (unless it starts with a `#` (which is a comment) or is blank).
 
+Each line consists of the actual command, like `text` or `image`, followed by an argument, like `"hello"` and then an optional list of options, like `color` or `fontsize`.  Options usually retain their values from one line to another, so you can write
+```
+text="Hello {$firstname}", fontsize=36
+text="How are you?"
+```
+and the second `text` command is also rendered with the same font size.  Certain options however have their values reset: these are maximum width for text, bounding box, opacity and border for images.
+
 ## template command
 Examples:
 ```
@@ -44,5 +51,5 @@ image="photo.jpg", bbox=(10% 10% 90% 90%)
 ```
 image="signature.png", bbox=(100 100 1000 500), align=top, opacity=50, border=black
 ```
-The `image` command places a JPEG or PNG image inside a bounding box x<sub>0</sub>, y<sub>0</sub>, x<sub>1</sub>, y<sub>1</sub> - by default centered - but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
+The `image` command places a JPEG or PNG image inside a bounding box (x<sub>0</sub> y<sub>0</sub> x<sub>1</sub> y<sub>1</sub>) - by default centered - but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
 
