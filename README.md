@@ -30,6 +30,15 @@ text="How are you?"
 ```
 and the second `text` command is also rendered with the same font size.  Certain options however have their values reset: these are maximum width for text, bounding box, opacity and border for images.
 
+## variables
+Example:
+```
+fs="36"
+text="Hello", fontsize={$fs}
+```
+A variable can be defined and used later, as long as it isn't called `text`, `image`, etc.
+These variables live in the same space as the variables defined in the URL.
+
 ## template command
 Examples:
 ```
@@ -60,7 +69,7 @@ Example:
 text="Fie foo fum", y=50%, color=gray, fontsize=5%
 ```
 The text may contain, e.g., `{$x}` in which case this is replaced by the value of `x` from the URL,
-or if `x` was defined by a variable command (see below).
+or if `x` was defined by a variable command (see above).
 
 The `text` command has many options:
 - `x=...` and `y=...` sets the x/y coordinate for the text.  The numeric value can either be an absolute number like `100` or a relative value like `50%`.  When it is a relative value, it is measured against the document's width if it's an x coordinate, and against the height if it's a y coordinate.
@@ -78,13 +87,33 @@ poly="10% 10%  90% 10%  90% 90%  10% 90%", border=blue, fill=pink, thickness=5
 ```
 The `poly` command takes a list of (x,y) coordinates and renders a polygon, by default unfilled and with a 1 px black border but these can be overriden by the `border`, `fill` and `thickness` options.
 
-## variables
+## output command
 Example:
 ```
-fs="36"
-text="Hello", fontsize={$fs}
+output="filename.jpg"
 ```
-A variable can be defined and used later, as long as it isn't called `text`, `image`, etc.
-These variables live in the same space as the variables defined in the URL.
+```
+output="{$name}.png"
+```
+When the `output` command is executed, the document is saved to the specified file name as either a JPEG or PNG (depending on the file name suffix).  The document is then destroyed.
+
+If the `output` command is not encountered, the document is rendered as a JPEG image in the browser.
+
+# A larger example
+```
+template="1400x1200", bg=#a3a992
+# define the font
+f="Futura-CondensedLight"
+# corners of the polygon
+x0="15%"
+y0="40%"
+x1="85%"
+y1="57%"
+text="Interested in Photography?", font={$f}, color=black, y=7%, fontsize=56
+poly="{$x0} {$y0} {$x1} {$y0} {$x1} {$y1} {$x0} {$y1} {$x0} {$y0}", fill=lightgray, thickness=2
+text="Visit your local camera store in Nässjö", font={$f}, y=50%
+image="../img/sponsorer/hegethorns.png", bbox=(80% 90% 99% 99%), align=bottom
+```
+!(https://github.com/kjepo/ludvig/blob/main/hegethorns.jpg)
 
 
