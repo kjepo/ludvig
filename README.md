@@ -25,7 +25,13 @@ As you can see from the sample file above, each line in a ludvig file is a comma
 
 ## template command
 Examples:
-```template="1200x800", bg=lightblue```
-```template="background.jpg"```
-```template="background.png"```
+```
+template="1200x800", bg=lightblue
+```
+```
+template="background.jpg"
+```
+```
+template="background.png"
+```
 
