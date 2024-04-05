@@ -13,7 +13,7 @@ For instance, here is a very simple ludvig script:
 template="1200x800", bg=lightblue
 text="Hello {$firstname}"
 ```
-when this is invoked with the following URL:
+When this is invoked with the following URL:
 ```
 ludvig.php?file=input.l&firstname=world
 ```
