@@ -21,3 +21,4 @@ the following will be shown in the browser:
 
 ![output from input.l](https://github.com/kjepo/ludvig/blob/main/input-output.jpg)
 
+As you can see from the sample file above, each line in a ludvig file is a command, unless it starts with a `#` (which is a comment) or is blank.
