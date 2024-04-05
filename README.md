@@ -45,6 +45,7 @@ This is usually the first line, as it creates a document of a certain size, eith
 A color is either one of the 147 standard HTML names like `brown`, `crimson` or `darkgray`, or a hex value like `#ffd700` (which happens to be gold).
 
 ## image command
+Examples:
 ```
 image="photo.jpg", bbox=(10% 10% 90% 90%)
 ```
@@ -54,8 +55,9 @@ image="signature.png", bbox=(100 100 1000 500), align=top, opacity=50, border=bl
 The `image` command places a JPEG or PNG image inside a bounding box (x<sub>0</sub> y<sub>0</sub> x<sub>1</sub> y<sub>1</sub>) - by default centered - but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
 
 ## text command
+Example:
 ```
-text="Fie foo fum"
+text="Fie foo fum", y=50%, color=gray, fontsize=5%
 ```
 The `text` command has many options:
 - `x=...` and `y=...` sets the x/y coordinate for the text.  The numeric value can either be an absolute number like `100` or a relative value like `50%`.  When it is a relative value, it is measured against the document's width if it's an x coordinate, and against the height if it's a y coordinate.
