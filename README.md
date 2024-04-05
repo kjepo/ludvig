@@ -28,7 +28,7 @@ Each line consists of the actual command, like `text=` or `image=`, followed by 
 text="Hello {$firstname}", fontsize=36
 text="How are you?"
 ```
-and the second `text` command is also rendered with the same font size.  Certain options however have their values reset: these are maximum width for text, bounding box, opacity and border for images.
+Here, the second `text` command is also rendered with the same font size.  Certain options however have their values reset for the following line: these are maximum width for text, and bounding box, opacity and border for images.
 
 ## variables
 Example:
