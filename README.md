@@ -71,4 +71,20 @@ The `text` command has many options:
 - `maxwidth=` followed by a numeric value.  If the text is wider than the value, the font is shrunk until it fits.
 - `linespc=` followed by a numeric value, which specifies the distance to the next line.  By default the line spacing is set to 1.5
 
+## poly command
+Example:
+```
+poly="10% 10%  90% 10%  90% 90%  10% 90%", border=blue, fill=pink, thickness=5
+```
+The `poly` command takes a list of (x,y) coordinates and renders a polygon, by default unfilled and with a 1 px black border but these can be overriden by the `border`, `fill` and `thickness` options.
+
 ## variables
+Example:
+```
+fs="36"
+text="Hello", fontsize={$fs}
+```
+A variable can be defined and used later, as long as it isn't called `text`, `image`, etc.
+These variables live in the same space as the variables defined in the URL.
+
+
