@@ -59,6 +59,9 @@ Example:
 ```
 text="Fie foo fum", y=50%, color=gray, fontsize=5%
 ```
+The text may contain, e.g., `{$x}` in which case this is replaced by the value of `x` from the URL,
+or if `x` was defined by a variable command (see below).
+
 The `text` command has many options:
 - `x=...` and `y=...` sets the x/y coordinate for the text.  The numeric value can either be an absolute number like `100` or a relative value like `50%`.  When it is a relative value, it is measured against the document's width if it's an x coordinate, and against the height if it's a y coordinate.
 - `align=` followed by `left`, `center` or `right` aligns the text. By default text is centered.
