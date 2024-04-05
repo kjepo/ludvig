@@ -15,6 +15,8 @@
   *      text can contain {$X} which is replaced by the PHP parameter &X=
   *  poly="10% 10%  100% 10%  100% 100%  10% 100%  10% 10%", border=black, fill=#d0d0d0, thickness=2
   *      creates a polygon with an optional fill color, border color and thickness
+  *  var="value"
+  *      creates a variable which can later be used as {$var}
   *  output="output.jpg"
   *      writes the current document to a file 
   *
@@ -23,7 +25,7 @@
 ini_set('display_errors', 'On');
 ini_set('max_execution_time', 600);
 
-$var = [];                      // holds variable names and $_REQUEST parameters
+$var = []; 		      // holds variable names and $_REQUEST parameters
 
 $settings = array(
     "width" => 1920,
