@@ -68,7 +68,7 @@ Example:
 ```
 text="Fie foo fum", y=50%, color=gray, fontsize=5%
 ```
-The text may contain, e.g., `{$x}` in which case this is replaced by the value of `x` from the URL,
+The text may contain variables, e.g., `{$x}` in which case this is replaced by the value of `x` from the URL,
 or if `x` was defined by a variable command (see above).
 
 The `text` command has many options:
