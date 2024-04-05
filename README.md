@@ -19,4 +19,5 @@ ludvig.php?file=input.l&firstname=world
 ```
 the following will be shown in the browser:
 
+[https://github.com/kjepo/ludvig/blob/main/input-output.jpg]
 
