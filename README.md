@@ -1,5 +1,5 @@
 # ludvig
-ludvig is a PHP-based tool for creating JPEG/PNG composites with text and images
+ludvig is a PHP-based tool for creating JPEG/PNG composites with text and images.
 
 ludvig is a PHP script and is invoked like this:
 ```
@@ -116,5 +116,7 @@ image="../img/sponsorer/hegethorns.png", bbox=(80% 90% 99% 99%), align=bottom
 ```
 ![Output](https://github.com/kjepo/ludvig/blob/main/hegethorns.jpeg)
 
+# Questions
 
+This software is released "as is".  If you're interested in having features added, you can contact me at `kjell@irstafoto.se`.
 
