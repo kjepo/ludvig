@@ -19,4 +19,72 @@ ludvig.php?file=input.l&firstname=world
 ```
 the following will be shown in the browser:
 
+![output from input.l](https://github.com/kjepo/ludvig/blob/main/input-output.jpg)
+
+As you can see from the sample file above, each line in a ludvig file is a command (unless it starts with a `#` (which is a comment) or is blank).
+
+Each line consists of the actual command, like `text=` or `image=`, followed by an argument, like `"hello"` and then an optional list of options, like `color=` or `fontsize=`.  Options usually retain their values from one line to another, so you can write
+```
+text="Hello {$firstname}", fontsize=36
+text="How are you?"
+```
+and the second `text` command is also rendered with the same font size.  Certain options however have their values reset: these are maximum width for text, bounding box, opacity and border for images.
+
+## template command
+Examples:
+```
+template="1200x800", bg=lightblue
+```
+```
+template="background.jpg"
+```
+```
+template="background.png"
+```
+This is usually the first line, as it creates a document of a certain size, either via a specified dimension (and an optional background color), or by loading a JPEG or PNG file.
+A color is either one of the 147 standard HTML names like `brown`, `crimson` or `darkgray`, or a hex value like `#ffd700` (which happens to be gold).
+
+## image command
+Examples:
+```
+image="photo.jpg", bbox=(10% 10% 90% 90%)
+```
+```
+image="signature.png", bbox=(100 100 1000 500), align=top, opacity=50, border=black
+```
+The `image` command places a JPEG or PNG image inside a bounding box (x<sub>0</sub> y<sub>0</sub> x<sub>1</sub> y<sub>1</sub>) - by default centered - but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
+
+## text command
+Example:
+```
+text="Fie foo fum", y=50%, color=gray, fontsize=5%
+```
+The text may contain, e.g., `{$x}` in which case this is replaced by the value of `x` from the URL,
+or if `x` was defined by a variable command (see below).
+
+The `text` command has many options:
+- `x=...` and `y=...` sets the x/y coordinate for the text.  The numeric value can either be an absolute number like `100` or a relative value like `50%`.  When it is a relative value, it is measured against the document's width if it's an x coordinate, and against the height if it's a y coordinate.
+- `align=` followed by `left`, `center` or `right` aligns the text. By default text is centered.
+- `font=` followed by a name like `Courier` or `Arial`.  Ludvig then looks for a file `Courier.ttf` or `Courier.otf` recursively in the same directory.
+- `fontsize=` followed by either an absolute value or a percentage, e.g., `2%` in which case the font size is measured against the document's height.
+- `color=` followed by a color name, like `brown`, or an RGB-value like `#ffd700`.
+- `maxwidth=` followed by a numeric value.  If the text is wider than the value, the font is shrunk until it fits.
+- `linespc=` followed by a numeric value, which specifies the distance to the next line.  By default the line spacing is set to 1.5
+
+## poly command
+Example:
+```
+poly="10% 10%  90% 10%  90% 90%  10% 90%", border=blue, fill=pink, thickness=5
+```
+The `poly` command takes a list of (x,y) coordinates and renders a polygon, by default unfilled and with a 1 px black border but these can be overriden by the `border`, `fill` and `thickness` options.
+
+## variables
+Example:
+```
+fs="36"
+text="Hello", fontsize={$fs}
+```
+A variable can be defined and used later, as long as it isn't called `text`, `image`, etc.
+These variables live in the same space as the variables defined in the URL.
+
 
