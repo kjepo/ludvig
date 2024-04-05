@@ -34,4 +34,5 @@ template="background.jpg"
 ```
 template="background.png"
 ```
-
+This is usually the first line, as it creates a document of a certain size, either via a specified dimension (and an optional background color), or by loading a JPEG or PNG file.
+A color is either one of the 147 standard HTML names like `brown`, `crimson` or `darkgray`, or a hex value like `#ffd700` (which happens to be gold).
