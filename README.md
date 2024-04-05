@@ -53,3 +53,17 @@ image="signature.png", bbox=(100 100 1000 500), align=top, opacity=50, border=bl
 ```
 The `image` command places a JPEG or PNG image inside a bounding box (x<sub>0</sub> y<sub>0</sub> x<sub>1</sub> y<sub>1</sub>) - by default centered - but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
 
+## text command
+```
+text="Fie foo fum"
+```
+The `text` command has many options:
+- `x=...` and `y=...` sets the x/y coordinate for the text.  The numeric value can either be an absolute number like `100` or a relative value like `50%`.  When it is a relative value, it is measured against the document's width if it's an x coordinate, and against the height if it's a y coordinate.
+- `align=` followed by `left`, `center` or `right` aligns the text. By default text is centered.
+- `font=` followed by a name like `Courier` or `Arial`.  Ludvig then looks for a file `Courier.ttf` or `Courier.otf` recursively in the same directory.
+- `fontsize=` followed by either an absolute value or a percentage, e.g., `2%` in which case the font size is measured against the document's height.
+- `color=` followed by a color name, like `brown`, or an RGB-value like `#ffd700`.
+- `maxwidth=` followed by a numeric value.  If the text is wider than the value, the font is shrunk until it fits.
+- `linespc=` followed by a numeric value, which specifies the distance to the next line.  By default the line spacing is set to 1.5
+
+## variables
