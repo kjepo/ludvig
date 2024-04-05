@@ -36,3 +36,13 @@ template="background.png"
 ```
 This is usually the first line, as it creates a document of a certain size, either via a specified dimension (and an optional background color), or by loading a JPEG or PNG file.
 A color is either one of the 147 standard HTML names like `brown`, `crimson` or `darkgray`, or a hex value like `#ffd700` (which happens to be gold).
+
+## image command
+```
+image="photo.jpg", bbox=(10% 10% 90% 90%)
+```
+```
+image="signature.png", bbox=(100 100 1000 500), align=top, opacity=50, border=black
+```
+The `image` command places a JPEG or PNG image inside a bounding box x<sub>0</sub>, y<sub>0</sub>, x<sub>1</sub>, y<sub>1</sub> - by default centered - but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
+
