@@ -23,7 +23,7 @@ the following will be shown in the browser:
 
 As you can see from the sample file above, each line in a ludvig file is a command (unless it starts with a `#` (which is a comment) or is blank).
 
-Each line consists of the actual command, like `text` or `image`, followed by an argument, like `"hello"` and then an optional list of options, like `color` or `fontsize`.  Options usually retain their values from one line to another, so you can write
+Each line consists of the actual command, like `text=` or `image=`, followed by an argument, like `"hello"` and then an optional list of options, like `color=` or `fontsize=`.  Options usually retain their values from one line to another, so you can write
 ```
 text="Hello {$firstname}", fontsize=36
 text="How are you?"
