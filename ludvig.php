@@ -15,8 +15,6 @@
   *      text can contain {$X} which is replaced by the PHP parameter &X=
   *  poly="10% 10%  100% 10%  100% 100%  10% 100%  10% 10%", border=black, fill=#d0d0d0, thickness=2
   *      creates a polygon with an optional fill color, border color and thickness
-  *  var="value"
-  *      creates a variable which can later be used as {$var}
   *  output="output.jpg"
   *      writes the current document to a file 
   *
@@ -25,7 +23,7 @@
 ini_set('display_errors', 'On');
 ini_set('max_execution_time', 600);
 
-$var = []; 		      // holds variable names and $_REQUEST parameters
+$var = [];                      // holds variable names and $_REQUEST parameters
 
 $settings = array(
     "width" => 1920,
@@ -508,7 +506,7 @@ function bbox($doc, $jpeg, $settings) {
     }
 }
 
-function mkcomposite($file) {
+function process($file) {
   global $settings, $_REQUEST;
 
   if (!file_exists($file)) {
@@ -532,6 +530,7 @@ function mkcomposite($file) {
       $settings["opacity"] = 100;
       $settings["border"] = null;
 
+      $line = trim($line);
       $lineno = $lineno + 1;
       if (!$line || substr(trim($line), 0, 1) == "#")
           continue;
@@ -571,7 +570,7 @@ function mkcomposite($file) {
       else
           $options = "";
 
-      debug("line: key={$key}     arg={$arg}     options={$options}");
+      // debug("line: key={$key}     arg={$arg}     options={$options}");
 
       if (str_contains($options, ","))
           $options = explode(",", $options);
@@ -711,6 +710,7 @@ function mkcomposite($file) {
       case "poly":
           $corners = [];
           $i = 0;
+          $arg = substitute($arg, $var);
           while (trim($arg)) {
               list($corners[$i++], $arg) = parseNumCoordinate($settings["width"], $arg);
               list($corners[$i++], $arg) = parseNumCoordinate($settings["height"], $arg);
@@ -750,7 +750,7 @@ function mkcomposite($file) {
 
       default:
           $var[$key] = $arg;
-          debug("variables:\n" . print_r($var, true));
+          // debug("variables:\n" . print_r($var, true));
       }
 
   }
@@ -758,7 +758,7 @@ function mkcomposite($file) {
 }
 
 function ludvig($file) {
-    $doc = mkcomposite($file);
+    $doc = process($file);
     if ($doc) {
         header('Content-Type: image/jpeg');
         imagejpeg($doc, null, 100);
