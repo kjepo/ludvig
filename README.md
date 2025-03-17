@@ -1,119 +1,142 @@
 # ludvig
-ludvig is a PHP-based tool for creating JPEG/PNG composites with text and images.
+ludvig is a PHP class for creating JPEG/PNG composites with text and images.
 
-ludvig is a PHP script and is invoked like this:
+For instance, here is a very simple PHP script using Ludvig:
 ```
-ludvig.php?file=input.l&var1=...&var2=...
+  require_once('ludvig-class.php');
+  header('Content-Type: image/jpeg');
+  $doc = new Ludvig(width: 1200, height: 800, background: "lightblue");
+  $doc->text("Hello world");
+  $doc->output();
 ```
-where `input.l` is the ludvig file.  Optionally, you can supply URL parameters ("query strings") `&var=...` and these variables can be used in the ludvig file where they will be replaced by their respective value.
+When this is invoked the following will be shown in the browser:
 
-For instance, here is a very simple ludvig script:
-```
-# this is the file input.l
-template="1200x800", bg=lightblue
-text="Hello {$firstname}"
-```
-When this is invoked with the following URL:
-```
-ludvig.php?file=input.l&firstname=world
-```
-the following will be shown in the browser:
+![output](https://github.com/kjepo/ludvig/blob/main/input-output.jpg)
 
-![output from input.l](https://github.com/kjepo/ludvig/blob/main/input-output.jpg)
+## Initialising
 
-As you can see from the sample file above, each line in a ludvig file is a command (unless it starts with a `#` which is a comment, or is blank).
+The constructor for Ludvig can be used in two ways.
+### Initialising with a an existing image file 
+```
+$doc = Ludvig("foo.jpg");
+```
+or
+```
+$doc = Ludvig("fie.png");
+```
+This creates a new document, with the given file (JPEG or PNG) as a background.
 
-Each line consists of the actual command, like `text=` or `image=`, followed by an argument, like `"hello"` and then an optional list of options, like `color=` or `fontsize=`.  Options usually retain their values from one line to another, so you can write
+### Initialising a blank document
+Alternatively,
 ```
-text="Hello {$firstname}", fontsize=36
-text="How are you?"
+$doc = Ludvig(width: 800, height: 500, background: "white", dpi: 300);
 ```
-Here, the second `text` command is also rendered with the same font size.  Certain options however have their values reset for the following line: these are maximum width for text, and bounding box, opacity and border for images.
+creates a blank document, where `width` and `height` are required parameters,
+whereas `background` and `dpi` are optional and defaults to the above values.
 
-## variables
-Example:
-```
-fs="36"
-text="Hello", fontsize={$fs}
-```
-A variable can be defined and used later, as long as it isn't called `text`, `image`, etc.
-These variables live in the same space as the variables defined in the URL.
+The width/height can also be, e.g., "20 cm", "50 mm" or "10 in".
+Generally speaking, any dimension in Ludvig can be an absolute number (interpreted as pixels),
+or a number followed by one of the units `cm`, `mm`, `in`, or `%`.
+But for initialising, `%` can not be used as `%` is assumed to be a percentage of the document's
+width/height which does not make sense when creating the document.
+Obviously, the `dpi` parameter is used to calculate the document's dimension when `cm`, `mm` or `in` is specified.
 
-## template command
-Examples:
-```
-template="1200x800", bg=lightblue
-```
-```
-template="background.jpg"
-```
-```
-template="background.png"
-```
-This is usually the first command, as it creates a document of a certain size, either via a specified dimension (and an optional background color), or by loading a JPEG or PNG file.
-A color is either one of the 147 standard HTML names like `brown`, `crimson` or `darkgray`, or a hex value like `#ffd700` (which happens to be gold).
+Once the document has been created, the instance variables `$doc->width`, `$doc->height` and $doc->dpi` are available.
 
-## image command
-Examples:
-```
-image="photo.jpg", bbox=(10% 10% 90% 90%)
-```
-```
-image="signature.png", bbox=(100 100 1000 500), align=top, opacity=50, border=black
-```
-The `image` command places a JPEG or PNG image (by default: centered) inside a bounding box (x<sub>0</sub> y<sub>0</sub> x<sub>1</sub> y<sub>1</sub>), but the `align` option allows you to specify `left`, `right`, `top` or `bottom`.  Also by default, the opacity is 100 and the image is rendered without a border.  During debugging, a border can however be useful to see the actual bounding box.
+## Methods
+Ludvig object understands the following methods:
 
-## text command
-Example:
-```
-text="Fie foo fum", y=50%, color=gray, fontsize=5%
-```
-The text may contain variables, e.g., `{$x}` in which case this is replaced by the value of `x` from the URL,
-or if `x` was defined by a variable command (see above).
+- Placing images
 
-The `text` command has many options:
-- `x=...` and `y=...` sets the x/y coordinate for the text.  The numeric value can either be an absolute number like `100` or a relative value like `50%`.  When it is a relative value, it is measured against the document's width if it's an x coordinate, and against the height if it's a y coordinate.
-- `align=` followed by `left`, `center` or `right` aligns the text. By default text is centered.
-- `font=` followed by a name like `Courier` or `Arial`.  Ludvig then looks for a file `Courier.ttf` or `Courier.otf` recursively in the same directory.
-- `fontsize=` followed by either an absolute value or a percentage, e.g., `2%` in which case the font size is measured against the document's height.
-- `color=` followed by a color name, like `brown`, or an RGB-value like `#ffd700`.
-- `maxwidth=` followed by a numeric value.  If the text is wider than the value, the font is shrunk until it fits.
-- `linespc=` followed by a numeric value, which specifies the distance to the next line.  By default the line spacing is set to 1.5
+`$doc->image("fie.jpg", bbox: [`x<sub>0</sub>, y<sub>0</sub>, x<sub>1</sub>, y<sub>1</sub>`], align: Ludvig::ALIGN_CENTER, opacity: 100, border: false)`
 
-## poly command
-Example:
-```
-poly="10% 10%  90% 10%  90% 90%  10% 90%", border=blue, fill=pink, thickness=5
-```
-The `poly` command takes a list of (x,y) coordinates and renders a polygon, by default unfilled and with a 1 px black border but these can be overriden by the `border`, `fill` and `thickness` options.
+This places the JPEG (or PNG) file on top of the document, as specified by the bounding box with the northwest corner
+(x<sub>0</sub>, y<sub>0</sub>)
+and the southeast corner
+(x<sub>1</sub>, y<sub>1</sub>).
+If not specified, the bounding box is assumed to be the entire document.
+The image can further be aligned in five different ways, as specified by the `align` parameter:
+`Ludvig::ALIGN_CENTER` (default),
+`Ludvig::ALIGN_TOP`,
+`Ludvig::ALIGN_BOTTOM`,
+`Ludvig::ALIGN_LEFT`,
+or
+`Ludvig::ALIGN_RIGHT`.
+The `opacity` is a value 0-100 (default 100, no transparency) while `border` draws a simple border around
+the bounding box (not the image) which is useful for debugging.
 
-## output command
-Example:
-```
-output="filename.jpg"
-```
-```
-output="{$name}.png"
-```
-When the `output` command is executed, the document is saved to the specified file name as either a JPEG or PNG (depending on the file name suffix).  The document is then destroyed.
+Successive calls to `image` places each image left-to-right on the document.
 
-If the `output` command is not encountered, the document is rendered as a JPEG image in the browser.
+- Placing text
+
+```
+$ludvig->text("Fie foo fum",
+               align: Ludvig::ALIGN_CENTER,
+               x: "50%", y: "50%",
+               font: "GoNotoCurrent",
+               fontsize: "2%",
+               textcolor: "black",
+               maxwidth: PHP_INT_MAX,
+               linespc: 1.45);
+```
+Only the first argument (the text itself) is required.  The following parameters have default values as shown.
+
+ `align` can be either `Ludvig::ALIGN_CENTER` (default), `Ludvig::ALIGN_LEFT`, or `Ludvig::ALIGN_RIGHT`.
+
+`x` and `y` are the coordinates for the baseline, which (as explained earlier) can be, e.g., "50%" or "1 cm".
+
+`font` is searched for recursively in the directory where `ludvig-class.php` is stored.  It should be a TTF or OTF file.
+There is a default font called `GoNotoCurrent`, declared as a constant in Ludvig. I highly recommend downloading this
+font as it supports many different alphabets.
+
+`fontsize` is the fontsize, which also can be an absolute number or a number with a unit.
+
+`textcolor` is either a name, like "blue", or a hex value like `#ffd700` (which happens to be gold).
+
+`maxwidth` defines the maximum width for the string.  If the text is wider than this, the fontsize is shrunk until it fits.
+
+`linespc` is the line spacing so that successive calls to `text` do not have to specify the `y` coordinate.
+
+All of these parameters (except `x` and `y`) retain their values from one call to the next,
+thus obviating the need to specify, e.g., the font or fontsize for every call.
+
+- Drawing polygons
+
+`$doc->poly([`(x<sub>0</sub>, y<sub>0</sub>, x<sub>1</sub>, y<sub>1</sub>, ...`], border: "black", fill: "gray", thickness: 1);`
+
+draws a filled polygon where the first argument specifies the corners.  The last corner doesn't have to be the same as the first.
+The parameters `border`, `fill` and `thickness` are optional with default values as shown.
+
+- Saving output
+
+```
+$doc->output()
+```
+or,
+```
+$doc->output("output.jpg")
+```
+outputs the document, either to the browser (when no argument is given), or to a JPEG or PNG file.
+If you output to the browser, it is recommended that you first issue a header:
+```
+header('Content-Type: image/jpeg');
+```
+This method returns a HTML `<img>` text which can be echo'ed to display a preview of the result.
 
 # A larger example
+
 ```
-template="1400x1200", bg=#a3a992
-# define the font
-f="Futura-CondensedLight"
-# corners of the polygon
-x0="15%"
-y0="40%"
-x1="85%"
-y1="57%"
-text="Interested in Photography?", font={$f}, color=black, y=7%, fontsize=56
-poly="{$x0} {$y0} {$x1} {$y0} {$x1} {$y1} {$x0} {$y1} {$x0} {$y0}", fill=lightgray, thickness=2
-text="Visit your local camera store in Nässjö", font={$f}, y=50%
-image="../img/sponsorer/hegethorns.png", bbox=(80% 90% 99% 99%), align=bottom
+$ludvig = new Ludvig(width: 1400, height: 1200, background: "a3a992");
+$f="Futura-CondensedLight";
+// corners of the polygon
+$x0="15%"; $y0="40%"; $x1="85%"; $y1="57%";
+$ludvig->text("Interested in Photography?", font: $f, textcolor: "black", y: "7%", fontsize: 56);
+$ludvig->poly([$x0, $y0, $x1, $y0, $x1, $y1, $x0, $y1, $x0, $y0], fill: "lightgray", thickness: 2);
+$ludvig->text("Visit your local camera store in Nässjö", y: "50%");
+$ludvig->image("../img/sponsorer/hegethorns.png", bbox: ["80%", "90%", "99%", "99%"], align: Ludvig::ALIGN_BOTTOM);
+echo $ludvig->output("../tmp/test-8.jpg");
 ```
+
 ![Output](https://github.com/kjepo/ludvig/blob/main/hegethorns.jpeg)
 
 # Questions
