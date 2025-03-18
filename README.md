@@ -2,7 +2,7 @@
 ludvig is a PHP class for creating JPEG/PNG composites with text and images.
 
 *Note:* an earlier version of Ludvig, which supported text input, is still available
-as `ludvig.php` and (https://github.com/kjepo/ludvig/README-ludvig-old.md).
+as `ludvig.php`, see `README-ludvig-old.md`.
 
 Here is a very simple PHP script using Ludvig:
 ```
@@ -14,7 +14,7 @@ Here is a very simple PHP script using Ludvig:
 ```
 When this is invoked the following will be shown in the browser:
 
-![output](https://github.com/kjepo/ludvig/blob/main/README-ludvig-old.md)
+![output](https://github.com/kjepo/ludvig/blob/main/input-output.jpg)
 
 ## Initialising
 
