@@ -14,7 +14,7 @@ Here is a very simple PHP script using Ludvig:
 ```
 When this is invoked the following will be shown in the browser:
 
-![output](https://github.com/kjepo/ludvig/blob/main/input-output.jpg)
+![output](https://github.com/kjepo/ludvig/blob/main/README-ludvig-old.md)
 
 ## Initialising
 
