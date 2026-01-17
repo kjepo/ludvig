@@ -39,7 +39,7 @@ Generally speaking, any dimension in Ludvig can be an absolute number (interpret
 or a number followed by one of the units `cm`, `mm`, `in`, `%`, or `pt`.
 But for initialising, `%` can not be used as `%` is assumed to be a percentage of the document's
 width/height which does not make sense when creating the document.
-Obviously, the `dpi` parameter is used to calculate the document's dimension when `cm`, `mm` or `in` are used.
+Obviously, the `dpi` parameter is used to calculate the document's dimension when `cm`, `mm`, `in` or `pt` are used.
 
 Once the document has been created, the instance variables `$doc->width`, `$doc->height` and `$doc->dpi` are available.
 
