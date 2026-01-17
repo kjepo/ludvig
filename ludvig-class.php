@@ -5,6 +5,57 @@
   *
   *  (C) Kjell Post, kjell@irstafoto.se
   *
+  *  Ludvig objects are created in one of two ways:
+  *
+  *  * $ludvig = Ludvig("foo.jpg"); // opens foo.jpg as a new image
+  *  * $ludvig = Ludvig(width: 800, height: 500, background: "blue", dpi: 300); // creates a blank image
+  *
+  *  The "background" parameter is optional and defaults to white. Also, dpi is optional and defaults to 300.
+  *
+  *  Ludvig objects understands the following methods:
+  *
+  *  * $ludvig->image("fie.jpg", bbox: [x0,y0,x1,y1], align: Ludvig::ALIGN_CENTER, opacity: 50, border: true)
+  *
+  *  where bbox is the bounding box, by default ["0%", "0%", "100%", "100%"]
+  *        align is one of: ALIGN_CENTER (default), ALIGN_TOP, ALIGN_BOTTOM, ALIGN_LEFT, ALIGN_RIGHT
+  *        opacity is 0-100 (default 100)
+  *        border is either true/false (default false)
+  *
+  *  * $ludvig->text("Fie foo fum", align: Ludvig::ALIGN_CENTER, x: "50%", y: 0, 
+  *                 font: "Courier", fontsize: 36, textcolor: "red", maxwidth: "90%", linespc: 1.45)
+  *
+  *  where align is one of: ALIGN_CENTER (default), ALIGN_LEFT, ALIGN_RIGHT
+  *        x/y is the start coordinate
+  *        font is name of a TTF or OTF font which is found by looking recursively in the current directory
+  *        fontsize is by default 2% of document's height
+  *        textcolor is by default black
+  *        maxwidth specifies maximum width of text: if it's too wide the fontsize is shrunk
+  *        linespc is the line spacing (default 1.45)
+  *
+  *  * $ludvig->poly([x0, y0, x1, y1, ...], border: "black", fill: "gray", thickness: 1)
+  *
+  *  where (x0,y0), (x1,y1), ... are the corner points of the polygon
+  *        border is by default black
+  *        fill color is by default gray
+  *        thickness is by default 1px
+  *
+  *  *  $ludvig->output("output.jpg")
+  *
+  *  If a filename (JPEG or PNG) is specified, the output is written to that.
+  *  If no filename is specified, the image is served to the browser.
+  *  This method returns a HTML <img> link, which can be used to display a preview of the result.
+  *
+  *  Normally, measurements can be absolute numbers (pixels), or some unit:
+  *
+  *    "20%" means 20% of current width/height
+  *    "20 cm" means 20 cm
+  *    "20 in" means 20 in
+  *    "20 mm" means 20 mm
+  *
+  *  Note that % can not be used when creating an image and that in/cm/mm are based off the document's dpi.
+  *
+  *  Colors can be either pre-defined names like "white", "black", etc (see list of 147 names below)
+  *  or 6 hex digits, optionally prefixed with "#": for instance "000000" (or "#000000") is black.
   *
   *  To do:
   *    allow three hex digits for color
@@ -31,8 +82,8 @@ class Ludvig {
 
     const JPEG_EXT = array('jpg', 'JPG', 'jpeg', 'JPEG');
     const PNG_EXT = array('png', 'PNG');
-    const DEFAULT_FONT = "GoNotoCurrent";
     const FONT_EXT = "/^.*\.(ttf|TTF|otf|OTF)$/";
+    const DEFAULT_FONT = "GoNotoCurrent";
 
     const ALIGN_CENTER = 1;
     const ALIGN_TOP = 2;
@@ -236,6 +287,8 @@ class Ludvig {
             return str_replace("mm", "", $val) * $this->dpi / 25.4;
         } else if (str_contains($val, "cm")) {
             return str_replace("cm", "", $val) * $this->dpi / 2.54;
+        } else if (str_contains($val, "pt")) {
+            return str_replace("pt", "", $val) * $this->dpi / 72;
         } else
             return $val;
     }
@@ -405,7 +458,7 @@ class Ludvig {
     function placeCenterText($text) {
         $textw = self::textWidth($this->fontsize, $this->font, $text);
         $fontsize = $this->fontsize;
-        while ($textw > $this->maxwidth && fontsize > 8) {
+        while ($textw > $this->maxwidth && $fontsize > 8) {
             $fontsize = $fontsize/1.1;
             $textw = self::textWidth($fontsize, $this->font, $text);	      
         }
@@ -529,13 +582,19 @@ class Ludvig {
         elseif ($this->align == Ludvig::ALIGN_RIGHT)
             $this->yp += $this->linespc * $this->placeRightText($text);
         else
-            self::abort("text align was not center, left or right", __LINE__);
+            self::abort("text align was not center, left or right: {$this->align}", __LINE__);
     }
                          
     public function __construct($file = null, $width = null, $height = null, $background = "ffffff", $dpi = 300) {
-        if ($file)
-            $this->doc = imagecreatefromjpeg($file);
-        elseif ($width && $height) {
+        if ($file) {
+            $ext = pathinfo($file, PATHINFO_EXTENSION);
+            if (in_array($ext, Ludvig::JPEG_EXT))
+                $this->doc = imagecreatefromjpeg($file);
+            else if (in_array($ext, Ludvig::PNG_EXT))
+                $this->doc = imagecreatefrompng($file);
+            else
+                self::abort("Sorry, don't know how to open {$fname}", __LINE__);
+        } elseif ($width && $height) {
             $this->dpi = $dpi;
             $width = $this->parseHorizontalNumber($width);
             $height = $this->parseVerticalNumber($height);

@@ -36,7 +36,7 @@ whereas `background` and `dpi` are optional and defaults to the above values.
 
 The width/height can also be, e.g., "20 cm", "50 mm" or "10 in".
 Generally speaking, any dimension in Ludvig can be an absolute number (interpreted as pixels),
-or a number followed by one of the units `cm`, `mm`, `in`, or `%`.
+or a number followed by one of the units `cm`, `mm`, `in`, `%`, or `pt`.
 But for initialising, `%` can not be used as `%` is assumed to be a percentage of the document's
 width/height which does not make sense when creating the document.
 Obviously, the `dpi` parameter is used to calculate the document's dimension when `cm`, `mm` or `in` are used.
@@ -93,7 +93,7 @@ Only the first argument (the text itself) is required.  The following parameters
 There is a default font called `GoNotoCurrent`, declared as a constant in Ludvig. I highly recommend downloading this
 font as it supports many different alphabets.
 
-`fontsize` is the fontsize, which also can be an absolute number or a number with a unit.
+`fontsize` is the fontsize, which also can be an absolute number (pixels) or a number with a unit, for instance "11pt".
 
 `textcolor` is either a name, like "blue", or a hex value like `"#ffd700"` (which happens to be gold).
 
