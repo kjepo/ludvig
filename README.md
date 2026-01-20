@@ -43,6 +43,13 @@ Obviously, the `dpi` parameter is used to calculate the document's dimension whe
 
 Once the document has been created, the instance variables `$doc->width`, `$doc->height` and `$doc->dpi` are available.
 
+A note on color profiles: the GD library on which Ludvig is based on has no support
+for ICC color profiles.  Thus, the generated composites will have the color profile
+"Untagged RGB" but basically it inherits the pixel values of the images that you add.
+Unless you really know what you're doing, or if you're blissfully unaware of color profiles,
+just stick to sRGB which is safe for social media, and the generated composites will
+be equivalent to sRGB, although they show up as "Untagged RGB" in, e.g., Photoshop.
+
 ## Methods
 Ludvig object understands the following methods:
 
@@ -81,7 +88,8 @@ $ludvig->text("Fie foo fum",
                fontsize: "2%",
                textcolor: "black",
                maxwidth: PHP_INT_MAX,
-               linespc: 1.45);
+               linespc: 1.45,
+               wrap: False);
 ```
 Only the first argument (the text itself) is required.  The following parameters have default values as shown.
 
@@ -101,7 +109,18 @@ font as it supports many different alphabets.
 
 `linespc` is the line spacing so that successive calls to `text` do not have to specify the `y` coordinate.
 
-All of these parameters (except `x` and `y`) retain their values from one call to the next,
+`wrap`, when True, breaks text longer than `maxwidth` into multiple lines instead of shrinking the fontsize.
+
+The `text()` method returns a bounding box for the added text.  This can be passed on to one of the class
+functions `ht()`, `nw()`, `ne()`, `sw()`, `se()`, which takes a bounding box as an argument and returns,
+respectively, the height (in pixels) or one of the four corners of the bounding box.  For instance,
+
+```
+$h = Ludvig::ht($doc->text("Fie foo fum"));
+```
+would return the pixel height of the text "Fie foo fum" just added to the document.
+
+All of the parameters to `text()` (except `x` and `y`) retain their values from one call to the next,
 thus obviating the need to specify, e.g., the font or fontsize for every call.
 
 - `poly`
@@ -113,6 +132,14 @@ $doc->poly([$x0, $y0, $x1, $y1, ...], border: "black", fill: "gray", thickness: 
 draws a filled polygon where the first argument specifies the corners.
 The last corner doesn't have to be the same as the first.
 The parameters `border`, `fill` and `thickness` are optional with default values as shown.
+
+- `marker`
+
+```
+$doc->marker($x, $y, $r: 10, $label: "({$x},{$y})", $color: "red", $font, $fontsize);
+```
+draws a marker at with a certain radius and a text label next to it.
+This is useful for debugging.
 
 - `output`
 

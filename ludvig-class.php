@@ -22,7 +22,7 @@
   *        border is either true/false (default false)
   *
   *  * $ludvig->text("Fie foo fum", align: Ludvig::ALIGN_CENTER, x: "50%", y: 0, 
-  *                 font: "Courier", fontsize: 36, textcolor: "red", maxwidth: "90%", linespc: 1.45)
+  *                 font: "Courier", fontsize: 36, textcolor: "red", maxwidth: "90%", linespc: 1.45, wrap: False)
   *
   *  where align is one of: ALIGN_CENTER (default), ALIGN_LEFT, ALIGN_RIGHT
   *        x/y is the start coordinate
@@ -31,6 +31,11 @@
   *        textcolor is by default black
   *        maxwidth specifies maximum width of text: if it's too wide the fontsize is shrunk
   *        linespc is the line spacing (default 1.45)
+  *        wrap == True breaks text longer than maxwidth into several lines instead of shrinking the fontsize.
+  *
+  *  $ludvig->text() returns the bounding box for the text just written.  This can be passed to one of the 
+  *  class functions ht(), nw(), ne(), sw() and se() which returns the height in pixels and the coordinates
+  *  of the nw, ne, sw, or se corner of the bounding box, respectively.
   *
   *  * $ludvig->poly([x0, y0, x1, y1, ...], border: "black", fill: "gray", thickness: 1)
   *
@@ -39,7 +44,23 @@
   *        fill color is by default gray
   *        thickness is by default 1px
   *
+  *
+  *  * $ludvig->marker(x, y, r: 10, label: "({$x},{$y})", color: "red", font, fontsize) 
+  *
+  *  where (x,y) is the location of the marker, 
+  *        r is the radius
+  *        label is the text written next to the marker
+  *        color is the color of the marker and the label
+  *        font and fontsize are used for the label
+  *
   *  *  $ludvig->output("output.jpg")
+  *
+  *  Note on ICC color profiles: the GD library that Ludvig is based on has no support
+  *  for ICC color profiles.  Thus, the generated composites will be "untagged RGB" but
+  *  basically it inherits the pixel values from the images that you embed, so if you add
+  *  sRGB images you can consider the final composite to also be sRGB.  If you were to add
+  *  an Adobe RGB image, you would get a final composite with Adobe RGB values.  Thus, it
+  *  is best to stick to sRGB images if you want something that is web safe.
   *
   *  If a filename (JPEG or PNG) is specified, the output is written to that.
   *  If no filename is specified, the image is served to the browser.
@@ -269,6 +290,38 @@ class Ludvig {
         die("{$s}, line {$line} in " . __FILE__);
     }
 
+    public static function ht($bbox) {
+        return max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7]);
+    }
+
+    public static function nw($bbox) {
+            return [
+                min($bbox[0], $bbox[2], $bbox[4], $bbox[6]),
+                min($bbox[1], $bbox[3], $bbox[5], $bbox[7])
+            ];
+    }
+
+    public static function ne($bbox) {
+            return [
+                max($bbox[0], $bbox[2], $bbox[4], $bbox[6]),
+                min($bbox[1], $bbox[3], $bbox[5], $bbox[7])
+            ];
+    }
+
+    public static function sw($bbox) {
+            return [
+                min($bbox[0], $bbox[2], $bbox[4], $bbox[6]),
+                max($bbox[1], $bbox[3], $bbox[5], $bbox[7])
+            ];
+    }
+
+    public static function se($bbox) {
+            return [
+                max($bbox[0], $bbox[2], $bbox[4], $bbox[6]),
+                max($bbox[1], $bbox[3], $bbox[5], $bbox[7])
+            ];
+    }
+
     // convert various units to pixels, e.g.,
     //   4711, _      => 4711
     //   "20in", _    => 20*dpi
@@ -288,7 +341,7 @@ class Ludvig {
         } else if (str_contains($val, "cm")) {
             return str_replace("cm", "", $val) * $this->dpi / 2.54;
         } else if (str_contains($val, "pt")) {
-            return str_replace("pt", "", $val) * $this->dpi / 72;
+            return str_replace("pt", "", $val) * $this->dpi / 72  * 0.72; // kludge
         } else
             return $val;
     }
@@ -455,24 +508,99 @@ class Ludvig {
         return $lower_right_y - $upper_right_y;
     }
 
-    function placeCenterText($text) {
+    function bbox_merge($a, $b) {
+        if ($a === null)        // If first bbox is null, return the second one
+            return $b;
+        // Collect all x and y values
+        $xs = [ $a[0], $a[2], $a[4], $a[6], $b[0], $b[2], $b[4], $b[6] ];
+        $ys = [ $a[1], $a[3], $a[5], $a[7], $b[1], $b[3], $b[5], $b[7] ];
+
+        $minX = min($xs);
+        $maxX = max($xs);
+        $minY = min($ys);
+        $maxY = max($ys);
+
+        // Return a tight enclosing bbox (same point order as GD)
+        return [ $minX, $minY, $maxX, $minY, $maxX, $maxY, $minX, $maxY ];
+    }
+
+    function imagettftext_wrapped($img, $fontsize, $angle, $x, $y, $color, $font, $text, $maxw, $lineHeight = 1.2) {
+        $words = preg_split('/\s+/', $text); // side effect: will collapse white space
+        $line = '';
+        $lines = [];
+
+        foreach ($words as $word) {
+            $testLine = $line === '' ? $word : "$line $word";
+            $box = imagettfbbox($fontsize, $angle, $font, $testLine);
+            $width = $box[2] - $box[0];
+
+            if ($width > $maxw && $line !== '') {
+                $lines[] = $line;
+                $line = $word;
+            } else {
+                $line = $testLine;
+            }
+        }
+
+        if ($line !== '')
+            $lines[] = $line;
+
+        $box = imagettfbbox($fontsize, $angle, $font, 'Ay');
+        $linePx = ($box[1] - $box[7]) * $lineHeight;
+
+        $bbox = null;
+        foreach ($lines as $i => $ln) {
+            $textw = self::textWidth($fontsize, $font, $ln);            
+            if ($this->align == Ludvig::ALIGN_LEFT)
+                $bboxline = imagettftext($img, $fontsize, $angle, $x, $y + $i * $linePx, $color, $font, $ln);
+            elseif ($this->align == Ludvig::ALIGN_RIGHT)
+                $bboxline = imagettftext($img, $fontsize, $angle, $x + $maxw - $textw, $y + $i * $linePx, $color, $font, $ln);
+            elseif ($this->align == Ludvig::ALIGN_CENTER)
+                $bboxline = imagettftext($img, $fontsize, $angle, $x + ($maxw - $textw)/2, $y + $i * $linePx, $color, $font, $ln);
+            else
+                self::abort("text align was not center, left or right: {$this->align}", __LINE__);                
+            $bbox = self::bbox_merge($bbox, $bboxline);
+        }
+        return $bbox;
+    }
+
+    function placeCenterText($text, $wrap) {
         $textw = self::textWidth($this->fontsize, $this->font, $text);
         $fontsize = $this->fontsize;
+
+        if ($wrap && $textw > $this->maxwidth) {
+            $xp = $this->xp - $this->maxwidth/2;
+            $yp = $this->yp;
+            $bbox = self::imagettftext_wrapped($this->doc, $fontsize, 0, $xp, $yp, $this->textcolor, $this->font, $text, $this->maxwidth, $this->linespc);
+            $this->maxwidth = PHP_INT_MAX; // reset
+            return $bbox;
+        }
+
         while ($textw > $this->maxwidth && $fontsize > 8) {
             $fontsize = $fontsize/1.1;
             $textw = self::textWidth($fontsize, $this->font, $text);	      
         }
         $xp = $this->xp - $textw/2;
-        ImageTTFText($this->doc, $fontsize, 0, $xp, $this->yp,
-                     $this->textcolor, $this->font, $text);
+        $bbox = ImageTTFText($this->doc, $fontsize, 0, $xp, $this->yp, $this->textcolor, $this->font, $text);
         $this->maxwidth = PHP_INT_MAX; // reset
+        return $bbox;
         return $this->fontsize;
     }
 
-    function placeLeftText($text) {
+    function placeLeftText($text, $wrap) {
         $textw = self::textWidth($this->fontsize, $this->font, $text);
         $texth = self::textHeight($this->fontsize, $this->font, $text);
         $fontsize = $this->fontsize;
+
+        if ($wrap && $textw > $this->maxwidth) {
+            $xp = $this->xp;
+            $yp = $this->yp;
+            $bbox = self::imagettftext_wrapped($this->doc, $fontsize, 0, $xp, $yp, $this->textcolor, $this->font, $text, $this->maxwidth, $this->linespc);
+            $this->maxwidth = PHP_INT_MAX; // reset
+            return $bbox;
+        }
+
+
         while ($textw > $this->maxwidth && $fontsize > 8) {
             $fontsize = $fontsize/1.1;
             $textw = self::textWidth($fontsize, $this->font, $text);	      
@@ -480,23 +608,32 @@ class Ludvig {
         }
         $xp = $this->xp;
         $yp = $this->yp;
-        ImageTTFText($this->doc, $fontsize, 0, $xp, $yp,
-                     $this->textcolor, $this->font, $text);
+        $bbox = ImageTTFText($this->doc, $fontsize, 0, $xp, $yp, $this->textcolor, $this->font, $text);
         $this->maxwidth = PHP_INT_MAX; // reset
+        return $bbox;
         return $this->fontsize;
     }
 
-    function placeRightText($text) {
+    function placeRightText($text, $wrap) {
         $textw = self::textWidth($this->fontsize, $this->font, $text);
         $fontsize = $this->fontsize;
+
+        if ($wrap && $textw > $this->maxwidth) {
+            $xp = $this->xp - $this->maxwidth; 
+            $yp = $this->yp;
+            $bbox = self::imagettftext_wrapped($this->doc, $fontsize, 0, $xp, $yp, $this->textcolor, $this->font, $text, $this->maxwidth, $this->linespc);
+            $this->maxwidth = PHP_INT_MAX; // reset
+            return $bbox;
+        }
+
         while ($textw > $this->maxwidth && $fontsize > 8) {
             $fontsize = $fontsize/1.1;
             $textw = self::textWidth($fontsize, $this->font, $text);	      
         }
         $xp = $this->xp - $textw;
-        ImageTTFText($this->doc, $fontsize, 0, $xp, $this->yp,
-                     $this->textcolor, $this->font, $text);
+        $bbox = ImageTTFText($this->doc, $fontsize, 0, $xp, $this->yp, $this->textcolor, $this->font, $text);
         $this->maxwidth = PHP_INT_MAX; // reset
+        return $bbox;
         return $this->fontsize;
     }
 
@@ -532,6 +669,26 @@ class Ludvig {
         }
     }
 
+    // draw a small point with radius r and a text label next to it
+    public function marker($x, $y, $r = 10, $label = null, $color = "red", $font = null, $fontsize = null) {
+        if (!$label)
+            $label = "({$x},{$y})"; // default label is the coordinate
+        if ($color)
+            $color = self::parseColor($color);
+        if (!$font)
+            $font = $this->font;
+        if (!$fontsize)
+            $fontsize = $this->fontsize;
+
+        // Draw the point (small filled circle)
+        imagefilledellipse($this->doc, $x, $y, $r, $r, $color);
+
+        // Draw the label
+        $offsetX = $fontsize;
+        $offsetY = $fontsize;
+        imagettftext($this->doc, $fontsize, 0, $x + $offsetX, $y + $offsetY, $color, $font, $label);
+    }
+
     public function poly($points,
                          $border = "black",
                          $fill = "gray",
@@ -557,7 +714,7 @@ class Ludvig {
     }
 
     public function text($text, $align = null, $x = null, $y = null, $font = null, $fontsize = null,
-                         $textcolor = null, $maxwidth = null, $linespc = null) {
+                         $textcolor = null, $maxwidth = null, $linespc = null, $wrap = False) {
         if ($align)
             $this->align = $align;
         if ($x)
@@ -576,13 +733,15 @@ class Ludvig {
             $this->linespc = $this->parseVerticalNumber($linespc);
 
         if ($this->align == Ludvig::ALIGN_CENTER)
-            $this->yp += $this->linespc * $this->placeCenterText($text);
+            $bbox = $this->placeCenterText($text, $wrap);
         elseif ($this->align == Ludvig::ALIGN_LEFT)
-            $this->yp += $this->linespc * $this->placeLeftText($text);
+            $bbox = $this->placeLeftText($text, $wrap);
         elseif ($this->align == Ludvig::ALIGN_RIGHT)
-            $this->yp += $this->linespc * $this->placeRightText($text);
+            $bbox = $this->placeRightText($text, $wrap);
         else
             self::abort("text align was not center, left or right: {$this->align}", __LINE__);
+        $this->yp += $this->linespc * self::ht($bbox);
+        return $bbox;
     }
                          
     public function __construct($file = null, $width = null, $height = null, $background = "ffffff", $dpi = 300) {
